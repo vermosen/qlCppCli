@@ -2,43 +2,42 @@
 
 #include "stdafx.h"
 
-#include <managedCalendar/managedCalendar.hpp>
-#include <threads/writerThread.hpp>
-#include <threads/pricingThread.hpp>
-
-using namespace System;
-using namespace System::Threading;
+void writeConsole(String ^ message)
+{
+	Console::WriteLine(message);
+}
 
 int main(array<System::String ^> ^args)
 {
-	// a calendar
-	managedCalendar ^ ptr = gcnew managedCalendar;
+	// a managed calendar !!
+	qlCalendar ^ ptr = gcnew qlCalendar;
 
 	// closest business date
 	QuantLib::Date pricingDate = ptr->nextBusinessDay(QuantLib::Date::todaysDate());
+	QuantLib::Calendar cdr = QuantLib::TARGET();
 
 	// get the number of cores
 	int coreNumber = Environment::ProcessorCount;
-	
-	// leaves one out
-	coreNumber--;
+
+	writeLogDelegate ^ logDlg = gcnew writeLogDelegate(writeConsole);
 
 	// create the listening thread
-	writerThread ^ writer = gcnew writerThread();
+	writerThread ^ writer = gcnew writerThread(logDlg);
 
-	// create the xriting delegate
-	writeDataBaseDelegate ^ dlg = gcnew writeDataBaseDelegate(writer, &writerThread::write);
+	// create the writing delegate
+	writeDataBaseDelegate ^ writeDlg = gcnew writeDataBaseDelegate(writer, &writerThread::write);
 
 	Thread ^ listener = gcnew Thread(gcnew ThreadStart(writer, &writerThread::work));
 
 	listener->Start();
 
 	// thread pool
-	array<Thread ^> ^ pool = gcnew array < Thread ^ >(coreNumber);
+	array<Thread ^> ^ pool = gcnew array < Thread ^>(coreNumber);
 
 	for (int i = 0; i < coreNumber; i++)
 	{
-		pool[i] = gcnew Thread(gcnew ThreadStart(gcnew pricingThread(pricingDate++, dlg), &pricingThread::work));
+		pricingDate = cdr.advance(pricingDate, 1 * Days);
+		pool[i] = gcnew Thread(gcnew ThreadStart(gcnew pricingThread(pricingDate, logDlg, writeDlg), &pricingThread::work));
 		pool[i]->Start();
 	}
 

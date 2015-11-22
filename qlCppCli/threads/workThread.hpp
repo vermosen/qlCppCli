@@ -6,7 +6,7 @@
 public ref class workThread abstract
 {
 protected:
-	workThread() {}
+	workThread(writeLogDelegate ^ log) : log_(log) {}
 	
 	virtual ~workThread() {};
 
@@ -20,6 +20,8 @@ public:
 protected:
 	virtual void workImpl() = 0;
 
+	// members
+	writeLogDelegate ^ log_;
 };
 
 #endif

@@ -14,7 +14,7 @@ public delegate void writeDataBaseDelegate(String ^ str);
 public ref class writerThread : public workThread
 {
 public:
-	writerThread() {}
+	writerThread(writeLogDelegate ^ log) : workThread(log) {}
 
 	virtual void workImpl() override
 	{

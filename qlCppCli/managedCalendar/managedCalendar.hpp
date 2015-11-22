@@ -4,16 +4,16 @@
 #include <ql/time/date.hpp>
 #include <ql/time/calendars/target.hpp>
 
-ref class managedCalendar
+ref class qlCalendar
 {
 public:
 
-	managedCalendar()
+	qlCalendar()
 	{
 		c_ = new QuantLib::TARGET();
 	}
 
-	~managedCalendar()
+	~qlCalendar()
 	{
 		delete c_;
 	}
